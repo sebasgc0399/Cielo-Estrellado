@@ -1,137 +1,255 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import BottomSheet from "./BottomSheet";
 import "./ModalForm.css";
-import '@fortawesome/fontawesome-free/css/all.css';
 
+const buildInitialState = (initialData) => ({
+  title: initialData?.title || "",
+  message: initialData?.message || "",
+  image: null,
+  previewUrl: initialData?.previewUrl || initialData?.imageUrl || null,
+});
 
-const ModalForm = ({ isOpen, onClose, onSubmit }) => {
-  const [formData, setFormData] = useState({
-    title: "",
-    message: "",
-    image: null,
-    previewUrl: null,
-  });
+const ModalForm = ({ isOpen, onClose, onSubmit, initialData }) => {
+  const formIdRef = useRef(
+    `star-form-${Math.random().toString(36).slice(2, 9)}`
+  );
+  const baselineRef = useRef(buildInitialState(initialData));
+  const [formData, setFormData] = useState(baselineRef.current);
+  const [errors, setErrors] = useState({});
+  const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
 
-  const MAX_TITLE_LENGTH = 50; // Máximo de caracteres para el título
-  const MAX_MESSAGE_LENGTH = 1000; // Máximo de caracteres para el mensaje
+  const MAX_TITLE_LENGTH = 50;
+  const MAX_MESSAGE_LENGTH = 1000;
+  const isEditMode = Boolean(
+    initialData?.title ||
+      initialData?.message ||
+      initialData?.previewUrl ||
+      initialData?.imageUrl
+  );
 
-  // Manejar cambios en los inputs
+  useEffect(() => {
+    if (!isOpen) {
+      setErrors({});
+      setHasAttemptedSubmit(false);
+      setFormData(baselineRef.current);
+      return;
+    }
+
+    const nextState = buildInitialState(initialData);
+    baselineRef.current = nextState;
+    setFormData(nextState);
+    setErrors({});
+    setHasAttemptedSubmit(false);
+  }, [isOpen, initialData]);
+
+  const isDirty =
+    formData.title !== baselineRef.current.title ||
+    formData.message !== baselineRef.current.message ||
+    formData.previewUrl !== baselineRef.current.previewUrl ||
+    Boolean(formData.image);
+
+  const validate = () => {
+    const nextErrors = {};
+    if (!formData.title.trim()) {
+      nextErrors.title = "Ingresa un título.";
+    }
+    if (!formData.message.trim()) {
+      nextErrors.message = "Ingresa un mensaje.";
+    }
+    return nextErrors;
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
-    // Limitar el número de caracteres según el campo
     if (name === "title" && value.length > MAX_TITLE_LENGTH) return;
     if (name === "message" && value.length > MAX_MESSAGE_LENGTH) return;
 
     setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
+    }
   };
 
-  // Manejar cambios en la imagen
   const handleImageChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setFormData((prev) => ({ ...prev, image: file, previewUrl: e.target.result }));
-      };
-      reader.readAsDataURL(file);
-    } else {
-      setFormData((prev) => ({ ...prev, image: null, previewUrl: null }));
-    }
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setFormData((prev) => ({
+        ...prev,
+        image: file,
+        previewUrl: event.target.result,
+      }));
+    };
+    reader.readAsDataURL(file);
   };
 
-  // Manejar el envío del formulario
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setHasAttemptedSubmit(true);
+    const nextErrors = validate();
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
 
-    // Crear un nuevo objeto con solo los datos necesarios
-    const { title, message, image } = formData;
-    const cleanData = { title, message, image };
+    const cleanData = {
+      title: formData.title.trim(),
+      message: formData.message.trim(),
+      image: formData.image,
+    };
 
-    // Enviar los datos necesarios al backend o función de procesamiento
-    onSubmit(cleanData);
-
-    resetForm(); // Limpia el formulario
-    onClose(); // Cierra el modal
-  };
-
-  // Manejar el clic fuera del modal para cerrarlo
-  const handleOverlayClick = (e) => {
-    if (e.target.className === "modal-overlay") {
-      resetForm(); // Limpia el formulario
-      onClose(); // Cierra el modal
+    const result = onSubmit?.(cleanData);
+    if (result && typeof result.then === "function") {
+      try {
+        await result;
+      } catch (error) {
+        console.error("Error al guardar la estrella:", error);
+      }
     }
   };
 
-  // Función para reiniciar el formulario
-  const resetForm = () => {
-    setFormData({
-      title: "",
-      message: "",
-      image: null,
-      previewUrl: null,
-    });
+  const confirmDiscard = () => {
+    if (!isDirty) return true;
+    return window.confirm("Tienes cambios sin guardar. ¿Cerrar sin guardar?");
   };
 
-  if (!isOpen) return null; // No renderiza nada si el modal no está abierto
+  const handleRequestClose = () => {
+    if (!confirmDiscard()) return;
+    setFormData(baselineRef.current);
+    setErrors({});
+    setHasAttemptedSubmit(false);
+    onClose?.();
+  };
+
+  if (!isOpen) return null;
+
+  const titleError = hasAttemptedSubmit ? errors.title : "";
+  const messageError = hasAttemptedSubmit ? errors.message : "";
+  const titleErrorId = `${formIdRef.current}-title-error`;
+  const messageErrorId = `${formIdRef.current}-message-error`;
+  const actions = (
+    <>
+      <button
+        type="submit"
+        form={formIdRef.current}
+        className="modal-form__button modal-form__button--primary"
+        aria-label="Guardar estrella"
+      >
+        Guardar
+      </button>
+      <button
+        type="button"
+        className="modal-form__button modal-form__button--ghost"
+        onClick={handleRequestClose}
+        aria-label="Cancelar"
+      >
+        Cancelar
+      </button>
+    </>
+  );
 
   return (
-    <div className="modal-overlay" onClick={handleOverlayClick}>
-      <div className="modal-content">
-        <span className="close" onClick={onClose}>×</span>
-        <h2>Añadir una nueva estrella</h2>
-        <form onSubmit={handleSubmit}>
-          <label htmlFor="title">Título:</label>
+    <BottomSheet
+      open={isOpen}
+      onClose={handleRequestClose}
+      title={isEditMode ? "Editar estrella" : "Crear estrella"}
+      actions={actions}
+      footerSticky
+    >
+      <form
+        id={formIdRef.current}
+        className="modal-form"
+        onSubmit={handleSubmit}
+        noValidate
+      >
+        <div className="modal-form__field">
+          <label className="modal-form__label" htmlFor="star-title">
+            Título
+          </label>
           <input
             type="text"
-            id="title"
+            id="star-title"
             name="title"
             value={formData.title}
             onChange={handleInputChange}
-            maxLength={MAX_TITLE_LENGTH} // Atributo para limitar los caracteres
+            maxLength={MAX_TITLE_LENGTH}
             required
+            aria-invalid={Boolean(titleError)}
+            aria-describedby={titleError ? titleErrorId : undefined}
+            className="modal-form__input"
           />
-          <p className="char-counter">
-            {formData.title.length}/{MAX_TITLE_LENGTH} caracteres
-          </p>
-          <label htmlFor="message">Mensaje:</label>
+          <div className="modal-form__meta">
+            <span
+              id={titleErrorId}
+              className="modal-form__error"
+              aria-live="polite"
+            >
+              {titleError}
+            </span>
+            <span className="modal-form__counter">
+              {formData.title.length}/{MAX_TITLE_LENGTH}
+            </span>
+          </div>
+        </div>
+
+        <div className="modal-form__field">
+          <label className="modal-form__label" htmlFor="star-message">
+            Mensaje
+          </label>
           <textarea
-            id="message"
+            id="star-message"
             name="message"
             value={formData.message}
             onChange={handleInputChange}
             rows="4"
-            maxLength={MAX_MESSAGE_LENGTH} // Atributo para limitar los caracteres
+            maxLength={MAX_MESSAGE_LENGTH}
             required
+            aria-invalid={Boolean(messageError)}
+            aria-describedby={messageError ? messageErrorId : undefined}
+            className="modal-form__textarea"
           />
-          <p className="char-counter">
-            {formData.message.length}/{MAX_MESSAGE_LENGTH} caracteres
-          </p>
-          <label htmlFor="image" className="image-label">
-            <span>Haz clic para seleccionar una imagen</span>
-            <input
-              type="file"
-              id="image"
-              name="image"
-              accept="image/*"
-              onChange={handleImageChange}
-              className="image-input"
-            />
+          <div className="modal-form__meta">
+            <span
+              id={messageErrorId}
+              className="modal-form__error"
+              aria-live="polite"
+            >
+              {messageError}
+            </span>
+            <span className="modal-form__counter">
+              {formData.message.length}/{MAX_MESSAGE_LENGTH}
+            </span>
+          </div>
+        </div>
+
+        <div className="modal-form__field">
+          <label className="modal-form__label" htmlFor="star-image">
+            Imagen
           </label>
+          <label className="modal-form__file-label" htmlFor="star-image">
+            <span>Seleccionar imagen</span>
+          </label>
+          <input
+            type="file"
+            id="star-image"
+            name="image"
+            accept="image/*"
+            onChange={handleImageChange}
+            className="modal-form__file-input"
+          />
           {formData.previewUrl ? (
-            <div className="image-preview-scrollable">
-              <img src={formData.previewUrl} alt="Previsualización de la imagen" />
+            <div className="modal-form__preview">
+              <img src={formData.previewUrl} alt="Vista previa de la imagen" />
             </div>
           ) : (
-            <div className="image-preview">
+            <div className="modal-form__preview modal-form__preview--empty">
               <p>No se ha seleccionado ninguna imagen</p>
             </div>
           )}
-          <button type="submit" className="submit-button">
-            Guardar Estrella
-          </button>
-        </form>
-      </div>
-    </div>
+        </div>
+      </form>
+    </BottomSheet>
   );
 };
 
