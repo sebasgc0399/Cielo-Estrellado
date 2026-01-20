@@ -1,0 +1,213 @@
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .modal-content {
+    display: flex;
+    flex-direction: column; /* Asegura que todos los elementos estén en columna */
+    align-items: center; /* Centra los elementos horizontalmente */
+    gap: 15px; /* Espaciado uniforme entre los elementos */
+    background: #222;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+    position: relative;
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  
+  /* Botón de cerrar (X) */
+.close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 24px; /* Tamaño de la "X" */
+    cursor: pointer;
+    color: white;
+    transition: transform 0.3s ease;
+  }
+  
+  .close:hover {
+    transform: scale(1.2); /* Animación al pasar el ratón */
+  }
+  
+  .image-label {
+    display: flex; /* Cambia a flex para alinear el contenido interno */
+    align-items: center; /* Centra verticalmente el contenido interno */
+    justify-content: center; /* Centra horizontalmente el contenido interno */
+    width: 90%; /* Asegura que ocupe todo el ancho disponible */
+    max-width: 360px; /* Límite de ancho para evitar desbordes */
+    font-size: 14px; /* Reduce ligeramente el tamaño de la fuente */
+    padding: 10px; /* Reduce el padding */
+    text-align: center; /* Asegura que el texto esté centrado */
+    margin: 0 auto; /* Centra el botón en su contenedor */
+    background-color: #ffa500; /* Fondo naranja */
+    color: #fff; /* Texto blanco */
+    border-radius: 5px; /* Bordes redondeados */
+    cursor: pointer; /* Cambia el cursor al pasar por encima */
+    transition: background-color 0.3s ease; /* Transición suave */
+  }
+  
+  .image-label:hover {
+    background-color: #e69500;
+  }
+  
+  .image-input {
+    display: none; /* Oculta el input real */
+  }
+  
+  .image-preview {
+    margin-top: 10px;
+    max-width: 100%;
+    text-align: center;
+    border: 1px dashed #ccc;
+    padding: 10px;
+    border-radius: 8px;
+    background-color: #333;
+    color: #aaa;
+  }
+  
+  .image-preview p {
+    margin: 0; /* Elimina márgenes innecesarios */
+    color: #fff;
+  }
+
+  .image-preview img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    border-radius: 5px;
+  }
+  
+  .submit-button {
+    background: linear-gradient(to right, #ffcc00, #ffaa00);
+    color: #222;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 15px;
+    font-size: 18px;
+    transition: background 0.3s ease, transform 0.2s ease-in-out;
+  }
+  
+  .submit-button:hover {
+    background: linear-gradient(to right, #ffaa00, #ff8800);
+    transform: scale(1.05);
+  }
+  
+  .modal-content input,
+  .modal-content textarea {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    border: 1px solid #555;
+    background: #333;
+    color: white;
+    font-size: 14px;
+    box-sizing: border-box;
+  }
+  
+  /* Ajuste para pantallas más pequeñas */
+  @media (max-width: 480px) {
+    .modal-content {
+      max-width: 90%; /* Reducir el ancho para pantallas pequeñas */
+      padding: 15px;
+    }
+  
+    .modal-content input,
+    .modal-content textarea {
+      font-size: 14px;
+    }
+  
+    .image-label {
+      display: inline-block;
+      width: 100%; /* Asegura que ocupe todo el ancho */
+      text-align: center;
+    }
+  
+    .submit-button {
+      width: 100%; /* Botón ocupa todo el ancho */
+      margin-top: 20px;
+    }
+  
+    .close-button {
+      font-size: 18px;
+    }
+  }
+  
+  /* Ajustes específicos para pantallas más pequeñas */
+@media (max-width: 480px) {
+  .modal-content {
+    max-width: 90%; /* Reducir el ancho para pantallas pequeñas */
+    padding: 15px;
+    gap: 10px; /* Espaciado más pequeño en pantallas reducidas */
+    display: flex; /* Asegurar alineación en columna */
+    flex-direction: column; /* Organizar elementos en una columna */
+    align-items: center; /* Centrar todos los elementos horizontalmente */
+  }
+
+  .image-label {
+    width: 70%;
+    max-width: 360px; /* Límite para evitar que se extienda demasiado */
+    font-size: 14px; /* Reduce ligeramente el tamaño de la fuente */
+    padding: 10px; /* Reduce el padding */
+    text-align: center; /* Asegura que el texto esté centrado */
+    margin: 0 auto; /* Centra el botón en su contenedor */
+  }
+
+  .submit-button {
+    width: 100%; /* Botón ocupa todo el ancho */
+    margin-top: 15px;
+  }
+}
+
+.char-counter {
+  font-size: 12px;
+  color: #aaa;
+  margin-top: -10px;
+  margin-bottom: 10px;
+  text-align: right;
+}
+
+.image-preview-scrollable {
+  max-height: 200px; /* Altura máxima para la previsualización */
+  overflow-y: auto; /* Habilitar scroll si la imagen excede el tamaño */
+  margin-top: 10px;
+  border: 1px dashed #ccc;
+  padding: 10px;
+  border-radius: 8px;
+  background-color: #333;
+  text-align: center;
+}
+
+.image-preview-scrollable img {
+  max-width: 100%; /* Ajustar el ancho de la imagen al contenedor */
+  height: auto; /* Mantener proporciones */
+  border-radius: 5px;
+  cursor: pointer; /* Para indicar que es interactiva si decides agregar zoom */
+}

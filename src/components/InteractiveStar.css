@@ -1,0 +1,40 @@
+/* src/components/InteractiveStar.css */
+  .interactive-star {
+    position: absolute;
+    width: 8px; /* Tamaño reducido */
+    height: 8px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #ffcc00, rgba(255, 204, 0, 0.8), rgba(255, 204, 0, 0));
+    box-shadow: 0 0 10px rgba(255, 204, 0, 0.8);
+    animation: twinkle 3s infinite, float 5s ease-in-out infinite;
+    transition: transform 0.3s ease, background-color 0.3s ease;
+    cursor: pointer;
+    z-index: 3;
+  }
+  
+ /* Efecto al interactuar (hover) */
+.interactive-star.hovered {
+  transform: scale(1.5) rotate(15deg); /* Aumenta de tamaño y rota ligeramente */
+  background: radial-gradient(circle, #ffffff, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0));
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.9);
+}
+
+/* Animación de parpadeo */
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Animación de movimiento flotante */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
