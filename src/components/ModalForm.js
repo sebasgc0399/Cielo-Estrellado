@@ -59,6 +59,15 @@ const ModalForm = ({ isOpen, onClose, onSubmit, initialData }) => {
     return nextErrors;
   };
 
+  const handleFieldFocus = (event) => {
+    window.setTimeout(() => {
+      event.currentTarget.scrollIntoView({
+        block: "center",
+        behavior: "smooth",
+      });
+    }, 50);
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
@@ -173,6 +182,7 @@ const ModalForm = ({ isOpen, onClose, onSubmit, initialData }) => {
             name="title"
             value={formData.title}
             onChange={handleInputChange}
+            onFocus={handleFieldFocus}
             maxLength={MAX_TITLE_LENGTH}
             required
             aria-invalid={Boolean(titleError)}
@@ -202,6 +212,7 @@ const ModalForm = ({ isOpen, onClose, onSubmit, initialData }) => {
             name="message"
             value={formData.message}
             onChange={handleInputChange}
+            onFocus={handleFieldFocus}
             rows="4"
             maxLength={MAX_MESSAGE_LENGTH}
             required
@@ -236,6 +247,7 @@ const ModalForm = ({ isOpen, onClose, onSubmit, initialData }) => {
             name="image"
             accept="image/*"
             onChange={handleImageChange}
+            onFocus={handleFieldFocus}
             className="modal-form__file-input"
           />
           {formData.previewUrl ? (
