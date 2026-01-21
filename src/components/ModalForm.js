@@ -13,10 +13,12 @@ const ModalForm = ({ isOpen, onClose, onSubmit, initialData }) => {
   const formIdRef = useRef(
     `star-form-${Math.random().toString(36).slice(2, 9)}`
   );
+  const fileInputRef = useRef(null);
   const baselineRef = useRef(buildInitialState(initialData));
   const [formData, setFormData] = useState(baselineRef.current);
   const [errors, setErrors] = useState({});
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const MAX_TITLE_LENGTH = 50;
   const MAX_MESSAGE_LENGTH = 1000;
@@ -31,6 +33,7 @@ const ModalForm = ({ isOpen, onClose, onSubmit, initialData }) => {
     if (!isOpen) {
       setErrors({});
       setHasAttemptedSubmit(false);
+      setIsSaving(false);
       setFormData(baselineRef.current);
       return;
     }
@@ -40,6 +43,7 @@ const ModalForm = ({ isOpen, onClose, onSubmit, initialData }) => {
     setFormData(nextState);
     setErrors({});
     setHasAttemptedSubmit(false);
+    setIsSaving(false);
   }, [isOpen, initialData]);
 
   const isDirty =
@@ -47,6 +51,13 @@ const ModalForm = ({ isOpen, onClose, onSubmit, initialData }) => {
     formData.message !== baselineRef.current.message ||
     formData.previewUrl !== baselineRef.current.previewUrl ||
     Boolean(formData.image);
+  const isValid = Boolean(
+    formData.title.trim() && formData.message.trim()
+  );
+  const titleCount = formData.title.length;
+  const messageCount = formData.message.length;
+  const titleWarn = titleCount >= MAX_TITLE_LENGTH - 5;
+  const messageWarn = messageCount >= MAX_MESSAGE_LENGTH - 50;
 
   const validate = () => {
     const nextErrors = {};
@@ -68,8 +79,8 @@ const ModalForm = ({ isOpen, onClose, onSubmit, initialData }) => {
     }, 50);
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
+  const handleInputChange = (event) => {
+    const { name, value } = event.target;
 
     if (name === "title" && value.length > MAX_TITLE_LENGTH) return;
     if (name === "message" && value.length > MAX_MESSAGE_LENGTH) return;
@@ -80,23 +91,35 @@ const ModalForm = ({ isOpen, onClose, onSubmit, initialData }) => {
     }
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
+  const handleImageChange = (event) => {
+    const file = event.target.files?.[0];
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = (loadEvent) => {
       setFormData((prev) => ({
         ...prev,
         image: file,
-        previewUrl: event.target.result,
+        previewUrl: loadEvent.target?.result || null,
       }));
     };
     reader.readAsDataURL(file);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleRemoveImage = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+    setFormData((prev) => ({ ...prev, image: null, previewUrl: null }));
+  };
+
+  const handleChangeImage = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleSubmit = async (event) => {
+    event?.preventDefault();
+    if (isSaving) return;
     setHasAttemptedSubmit(true);
     const nextErrors = validate();
     setErrors(nextErrors);
@@ -108,13 +131,16 @@ const ModalForm = ({ isOpen, onClose, onSubmit, initialData }) => {
       image: formData.image,
     };
 
-    const result = onSubmit?.(cleanData);
-    if (result && typeof result.then === "function") {
-      try {
+    setIsSaving(true);
+    try {
+      const result = onSubmit?.(cleanData);
+      if (result && typeof result.then === "function") {
         await result;
-      } catch (error) {
-        console.error("Error al guardar la estrella:", error);
       }
+    } catch (error) {
+      console.error("Error al guardar la estrella:", error);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -140,16 +166,17 @@ const ModalForm = ({ isOpen, onClose, onSubmit, initialData }) => {
   const actions = (
     <>
       <button
-        type="submit"
-        form={formIdRef.current}
-        className="modal-form__button modal-form__button--primary"
+        type="button"
+        className="btn btn--primary"
+        onClick={handleSubmit}
+        disabled={!isValid || isSaving}
         aria-label="Guardar estrella"
       >
-        Guardar
+        {isSaving ? "Guardando..." : "Guardar"}
       </button>
       <button
         type="button"
-        className="modal-form__button modal-form__button--ghost"
+        className="btn btn--ghost"
         onClick={handleRequestClose}
         aria-label="Cancelar"
       >
@@ -165,15 +192,16 @@ const ModalForm = ({ isOpen, onClose, onSubmit, initialData }) => {
       title={isEditMode ? "Editar estrella" : "Crear estrella"}
       actions={actions}
       footerSticky
+      className="bottom-sheet--modal-form"
     >
       <form
         id={formIdRef.current}
-        className="modal-form"
-        onSubmit={handleSubmit}
+        className="star-form"
+        onSubmit={(event) => event.preventDefault()}
         noValidate
       >
-        <div className="modal-form__field">
-          <label className="modal-form__label" htmlFor="star-title">
+        <div className="form-group">
+          <label className="label" htmlFor="star-title">
             Título
           </label>
           <input
@@ -187,24 +215,24 @@ const ModalForm = ({ isOpen, onClose, onSubmit, initialData }) => {
             required
             aria-invalid={Boolean(titleError)}
             aria-describedby={titleError ? titleErrorId : undefined}
-            className="modal-form__input"
+            className="field"
           />
-          <div className="modal-form__meta">
-            <span
-              id={titleErrorId}
-              className="modal-form__error"
-              aria-live="polite"
-            >
+          <div className="meta">
+            <span id={titleErrorId} className="error" aria-live="polite">
               {titleError}
             </span>
-            <span className="modal-form__counter">
-              {formData.title.length}/{MAX_TITLE_LENGTH}
+            <span
+              className={`counter ${
+                titleCount ? "counter--active" : ""
+              } ${titleWarn ? "counter--warn" : ""}`}
+            >
+              {titleCount}/{MAX_TITLE_LENGTH}
             </span>
           </div>
         </div>
 
-        <div className="modal-form__field">
-          <label className="modal-form__label" htmlFor="star-message">
+        <div className="form-group">
+          <label className="label" htmlFor="star-message">
             Mensaje
           </label>
           <textarea
@@ -218,47 +246,66 @@ const ModalForm = ({ isOpen, onClose, onSubmit, initialData }) => {
             required
             aria-invalid={Boolean(messageError)}
             aria-describedby={messageError ? messageErrorId : undefined}
-            className="modal-form__textarea"
+            className="field field--textarea"
           />
-          <div className="modal-form__meta">
-            <span
-              id={messageErrorId}
-              className="modal-form__error"
-              aria-live="polite"
-            >
+          <div className="meta">
+            <span id={messageErrorId} className="error" aria-live="polite">
               {messageError}
             </span>
-            <span className="modal-form__counter">
-              {formData.message.length}/{MAX_MESSAGE_LENGTH}
+            <span
+              className={`counter ${
+                messageCount ? "counter--active" : ""
+              } ${messageWarn ? "counter--warn" : ""}`}
+            >
+              {messageCount}/{MAX_MESSAGE_LENGTH}
             </span>
           </div>
         </div>
 
-        <div className="modal-form__field">
-          <label className="modal-form__label" htmlFor="star-image">
-            Imagen
-          </label>
-          <label className="modal-form__file-label" htmlFor="star-image">
-            <span>Seleccionar imagen</span>
-          </label>
-          <input
-            type="file"
-            id="star-image"
-            name="image"
-            accept="image/*"
-            onChange={handleImageChange}
-            onFocus={handleFieldFocus}
-            className="modal-form__file-input"
-          />
-          {formData.previewUrl ? (
-            <div className="modal-form__preview">
-              <img src={formData.previewUrl} alt="Vista previa de la imagen" />
-            </div>
-          ) : (
-            <div className="modal-form__preview modal-form__preview--empty">
-              <p>No se ha seleccionado ninguna imagen</p>
-            </div>
-          )}
+        <div className="form-group">
+          <span className="label">Imagen</span>
+          <div className="image-field">
+            {!formData.previewUrl ? (
+              <label className="image-pick" htmlFor="star-image">
+                <span className="image-pick__icon" aria-hidden="true">
+                  +
+                </span>
+                <span className="image-pick__title">Imagen</span>
+                <span className="image-pick__hint">Toca para seleccionar</span>
+              </label>
+            ) : (
+              <div className="image-preview">
+                <img src={formData.previewUrl} alt="Preview" />
+                <div className="image-preview__actions">
+                  <button
+                    type="button"
+                    className="btn btn--ghost"
+                    onClick={handleChangeImage}
+                    aria-label="Cambiar imagen"
+                  >
+                    Cambiar
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn--danger"
+                    onClick={handleRemoveImage}
+                    aria-label="Quitar imagen"
+                  >
+                    Quitar
+                  </button>
+                </div>
+              </div>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              id="star-image"
+              name="image"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="image-input"
+            />
+          </div>
         </div>
       </form>
     </BottomSheet>

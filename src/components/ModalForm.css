@@ -1,49 +1,97 @@
-.modal-form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
+.bottom-sheet--modal-form {
+  background: #141f3f;
+  color: #f5f8ff;
+  border: 1px solid rgba(124, 242, 232, 0.12);
+  box-shadow: 0 20px 50px rgba(6, 18, 44, 0.55);
 }
 
-.modal-form__field {
-  display: flex;
+.bottom-sheet--modal-form .bottom-sheet__handle {
+  padding-top: var(--space-3);
+}
+
+.bottom-sheet--modal-form .bottom-sheet__grab {
+  background: rgba(255, 255, 255, 0.5);
+  width: 46px;
+}
+
+.bottom-sheet--modal-form .bottom-sheet__header {
+  padding: 0 var(--space-1);
+}
+
+.bottom-sheet--modal-form .bottom-sheet__title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.bottom-sheet--modal-form .bottom-sheet__close {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: inherit;
+}
+
+.bottom-sheet--modal-form .bottom-sheet__actions {
   flex-direction: column;
   gap: var(--space-2);
 }
 
-.modal-form__label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-2);
+.bottom-sheet--modal-form .bottom-sheet__actions > * {
+  width: 100%;
+  flex: 0 0 auto;
 }
 
-.modal-form__input,
-.modal-form__textarea {
-  width: 100%;
-  background: rgba(4, 10, 24, 0.65);
+.bottom-sheet--modal-form .bottom-sheet__actions--sticky {
+  background: #121c39;
+  border-top: 1px solid rgba(124, 242, 232, 0.12);
+}
+
+.star-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.label {
+  color: rgba(245, 248, 255, 0.8);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.field {
+  background: rgba(20, 34, 72, 0.9);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-md);
-  color: var(--text-1);
-  padding: 12px 14px;
-  min-height: 44px;
+  color: #f5f8ff;
+  padding: 14px;
+  min-height: 48px;
 }
 
-.modal-form__textarea {
-  min-height: 140px;
+.field--textarea {
+  min-height: 150px;
+  resize: vertical;
 }
 
-.modal-form__input:focus,
-.modal-form__textarea:focus {
-  border-color: var(--accent-1);
-  box-shadow: 0 0 0 2px rgba(46, 210, 201, 0.25);
+.field:focus {
+  border-color: #2ed2c9;
+  box-shadow: 0 0 0 3px rgba(46, 210, 201, 0.25);
+  outline: none;
 }
 
-.modal-form__input[aria-invalid="true"],
-.modal-form__textarea[aria-invalid="true"] {
-  border-color: var(--danger);
-  box-shadow: 0 0 0 2px rgba(255, 93, 108, 0.2);
+.field[aria-invalid="true"] {
+  border-color: #ff5d6c;
+  box-shadow: 0 0 0 3px rgba(255, 93, 108, 0.2);
 }
 
-.modal-form__meta {
+.meta {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -51,33 +99,75 @@
   gap: var(--space-2);
 }
 
-.modal-form__error {
+.error {
+  color: #ff8a95;
   font-size: 0.75rem;
-  color: var(--danger);
 }
 
-.modal-form__counter {
-  font-size: 0.75rem;
-  color: var(--text-2);
+.counter {
+  font-size: 0.72rem;
+  color: rgba(245, 248, 255, 0.5);
+  text-align: right;
+  transition: color 0.2s ease, opacity 0.2s ease;
 }
 
-.modal-form__file-label {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  padding: 12px 16px;
-  min-height: 44px;
-  border: 1px dashed rgba(255, 255, 255, 0.25);
-  border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.04);
-  cursor: pointer;
-  text-align: center;
-  color: var(--text-1);
+.counter--active {
+  color: rgba(245, 248, 255, 0.75);
+}
+
+.counter--warn {
+  color: #ffd1d6;
   font-weight: 600;
 }
 
-.modal-form__file-input {
+.image-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.image-pick {
+  border: 1px dashed rgba(124, 242, 232, 0.4);
+  border-radius: var(--radius-md);
+  background: rgba(46, 210, 201, 0.08);
+  padding: var(--space-5);
+  text-align: center;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.image-field:focus-within .image-pick {
+  border-color: #2ed2c9;
+  box-shadow: 0 0 0 3px rgba(46, 210, 201, 0.2);
+}
+
+.image-pick__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: rgba(124, 242, 232, 0.2);
+  color: #a8fff2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.image-pick__title {
+  font-weight: 600;
+  color: #f5f8ff;
+}
+
+.image-pick__hint {
+  font-size: 0.85rem;
+  color: rgba(245, 248, 255, 0.7);
+}
+
+.image-input {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -89,51 +179,69 @@
   border: 0;
 }
 
-.modal-form__preview {
+.image-preview {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  gap: var(--space-3);
   padding: var(--space-3);
   border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.modal-form__preview img {
-  max-width: 100%;
-  max-height: 220px;
+.image-preview img {
+  width: 100%;
+  max-height: 240px;
   border-radius: var(--radius-md);
   object-fit: cover;
 }
 
-.modal-form__preview--empty {
-  color: var(--text-2);
-  font-size: 0.85rem;
-  text-align: center;
+.image-preview__actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
 }
 
-.modal-form__button {
+.image-preview__actions .btn {
+  flex: 1 1 120px;
+}
+
+.btn {
   border: none;
   border-radius: var(--radius-md);
   padding: 12px 16px;
   min-height: 48px;
   font-weight: 600;
-  width: 100%;
   cursor: pointer;
+  width: 100%;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, opacity 0.2s ease;
 }
 
-.modal-form__button--primary {
-  background: linear-gradient(90deg, var(--accent-1), var(--accent-2));
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.btn--primary {
+  background: linear-gradient(120deg, #2ed2c9, #9ff7ee);
   color: #04121f;
+  box-shadow: 0 12px 24px rgba(46, 210, 201, 0.25);
 }
 
-.modal-form__button--ghost {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--text-1);
+.btn--ghost {
+  background: rgba(255, 255, 255, 0.12);
+  color: #f5f8ff;
+}
+
+.btn--danger {
+  background: rgba(255, 93, 108, 0.16);
+  color: #ffe2e6;
+  border: 1px solid rgba(255, 93, 108, 0.35);
 }
 
 @media (max-width: 480px) {
-  .modal-form__textarea {
+  .field--textarea {
     min-height: 120px;
   }
 }

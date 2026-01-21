@@ -14,6 +14,7 @@ const BottomSheet = ({
   size = 80,
   actions,
   footerSticky = false,
+  className = "",
   children,
 }) => {
   const sheetRef = useRef(null);
@@ -108,12 +109,19 @@ const BottomSheet = ({
     ? "bottom-sheet__content"
     : "bottom-sheet__content bottom-sheet__content--safe";
 
+  const sheetClassName = [
+    "bottom-sheet",
+    sizeClass,
+    isDragging ? "is-dragging" : "",
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
     <div className="bottom-sheet__backdrop" onClick={handleBackdropClick}>
       <div
-        className={`bottom-sheet ${sizeClass} ${
-          isDragging ? "is-dragging" : ""
-        }`}
+        className={sheetClassName}
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? titleIdRef.current : undefined}

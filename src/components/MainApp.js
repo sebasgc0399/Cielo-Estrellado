@@ -17,17 +17,20 @@ const MainApp = ({ currentUser }) => {
   const [stars, setStars] = useState([]);
   const [selectedStar, setSelectedStar] = useState(null);
   const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear()); // Año seleccionado
-  const [showYearMenu, setShowYearMenu] = useState(false); // Controla el menú desplegable
-  const [selectorPosition, setSelectorPosition] = useState("right"); // Estado para manejar la posición del selector
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [showYearMenu, setShowYearMenu] = useState(false);
+  const [selectorPosition, setSelectorPosition] = useState("right");
   const skyRef = useRef(null);
 
-  const years = Array.from({ length: 2100 - 2024 + 1 }, (_, index) => 2024 + index); // Generar años 2024-2100
+  const years = Array.from(
+    { length: 2100 - 2024 + 1 },
+    (_, index) => 2024 + index
+  );
 
   useEffect(() => {
     const loadStars = async () => {
       try {
-        const data = await fetchStars(selectedYear); // Cargar estrellas del año seleccionado
+        const data = await fetchStars(selectedYear);
         setStars(data);
       } catch (error) {
         console.error("Error al cargar estrellas:", error);
@@ -35,15 +38,15 @@ const MainApp = ({ currentUser }) => {
     };
 
     loadStars();
-  }, [selectedYear]); // Volver a cargar estrellas cuando el año cambie
+  }, [selectedYear]);
 
   const handleYearChange = (year) => {
-    setSelectedYear(year); // Cambiar el año seleccionado
-    setShowYearMenu(false); // Cerrar el menú
+    setSelectedYear(year);
+    setShowYearMenu(false);
   };
 
   const togglePosition = () => {
-    setSelectorPosition((prev) => (prev === "right" ? "left" : "right")); // Cambia entre izquierda y derecha
+    setSelectorPosition((prev) => (prev === "right" ? "left" : "right"));
   };
 
   const handleOpenModal = () => setModalOpen(true);
@@ -60,18 +63,20 @@ const MainApp = ({ currentUser }) => {
   };
 
   const handleFormSubmit = async (data) => {
-    const completeData = { ...data, createdBy: currentUser.uid }; // No enviamos x, y
+    const completeData = { ...data, createdBy: currentUser.uid };
     try {
-      const result = await createStar(completeData); // El backend devuelve las coordenadas
+      const result = await createStar(completeData);
       setStars((prevStars) => [
         ...prevStars,
-        { ...result, id: result.id }, // Usa las coordenadas devueltas por el backend
+        { ...result, id: result.id },
       ]);
       setModalOpen(false);
       toast.success("Estrella creada con éxito!");
     } catch (error) {
       console.error("Error al crear estrella:", error);
-      toast.error("No se pudo crear la estrella o ya creaste una estrella el día de hoy");
+      toast.error(
+        "No se pudo crear la estrella o ya creaste una estrella el día de hoy"
+      );
     }
   };
 
@@ -80,7 +85,9 @@ const MainApp = ({ currentUser }) => {
       const result = await updateStar(updatedStar);
       setStars((prevStars) =>
         prevStars.map((star) =>
-          star.id === updatedStar.id ? { ...star, ...updatedStar, image: result.image } : star
+          star.id === updatedStar.id
+            ? { ...star, ...updatedStar, image: result.image }
+            : star
         )
       );
       handleCloseDetailsModal();
@@ -101,30 +108,32 @@ const MainApp = ({ currentUser }) => {
 
   return (
     <div className="app" ref={skyRef}>
-      <div className={`year-selector-container ${selectorPosition}`}>
-        <button
-          className="year-selector-button"
-          onClick={() => setShowYearMenu((prev) => !prev)}
-        >
-          Año: {selectedYear} ⬇
-        </button>
-        {showYearMenu && (
-          <div className="year-menu">
-            {years.map((year) => (
-              <div
-                key={year}
-                className="year-option"
-                onClick={() => handleYearChange(year)}
-              >
-                {year}
-              </div>
-            ))}
-          </div>
-        )}
-        <button className="toggle-position-button" onClick={togglePosition}>
-          ⇆
-        </button>
-      </div>
+      {!isModalOpen && (
+        <div className={`year-selector-container ${selectorPosition}`}>
+          <button
+            className="year-selector-button"
+            onClick={() => setShowYearMenu((prev) => !prev)}
+          >
+            Año: {selectedYear}
+          </button>
+          {showYearMenu && (
+            <div className="year-menu">
+              {years.map((year) => (
+                <div
+                  key={year}
+                  className="year-option"
+                  onClick={() => handleYearChange(year)}
+                >
+                  {year}
+                </div>
+              ))}
+            </div>
+          )}
+          <button className="toggle-position-button" onClick={togglePosition}>
+            Cambiar
+          </button>
+        </div>
+      )}
       <div className="sky">
         <BackgroundStars />
       </div>
@@ -136,13 +145,15 @@ const MainApp = ({ currentUser }) => {
           key={star.id}
           x={star.x}
           y={star.y}
-          title={`${star.title} (${star.createdBy === currentUser.uid ? "Sebastian" : "Sofia"})`}
+          title={`${star.title} (${
+            star.createdBy === currentUser.uid ? "Sebastian" : "Sofia"
+          })`}
           message={star.message}
           imageUrl={star.image}
           onClick={() => handleStarClick(star)}
         />
       ))}
-      <FloatingButton onClick={handleOpenModal} />
+      {!isModalOpen && <FloatingButton onClick={handleOpenModal} />}
       <ModalForm
         isOpen={isModalOpen}
         onClose={handleCloseModal}
